@@ -1,0 +1,49 @@
+# framing_agenda_setting
+This repository contains code for https://arxiv.org/abs/1808.09386 " Framing and Agenda-setting in Russian News: a Computational Analysis of Intricate Political Strategies"
+
+Its contents, by directory are:
+
+data:
+   country_subs.txt: file containing list of all countries keywords
+   russian_monthly_gdp.csv
+   russian_quarterly_gdp.csv
+   russian_rtsi_rub.csv
+   russian_yearly_gdp.csv
+   usa.txt: file containing "USA", used as input to count_all_countries
+
+src:
+   count_all_countries.py: the main file for counting how many times a word is
+                           mentioned in a particular time slice
+          Parameters:
+                  --input_path INPUT_PATH
+                                       Directory where data files are. Must include trailing
+                                       backslash
+                  --subs_file SUBS_FILE
+                                       File containing keywords to count
+                  --word_level         Print word-level counts instead of article-level counts
+                  --timestep {monthly,quarterly,semi,yearly}
+                                       specify what time increment to use for aggregating articles
+                  --econ_file ECON_FILE
+                                       If you specify this, output will include compute
+                                       correlation of counts with econ series (does NOT work
+                                       for yearly)
+          Output:
+             default output:
+                     [date (start of range)] [# articles containing keywords at least 2 times] [total # of articles in time slice] [# articles with keywords / # total articles]
+             if you specify the parameter "--word_level", then the output is:
+                     [date (start of range)] [# of keywords in timeslice] [total # of words in timeslice] [# keywords / # total words]
+          Example run:
+             python count_all_countries.py --timestep yearly --input_path "../data/Izvestiia_processed/" --subs_file "../data/usa.txt"
+
+          Runs that reproduce data in paper:
+             python count_all_countries.py --timestep monthly --econ_file ../data/econ_files/russian_rtsi_rub.csv --word_level > ../outputs/monthly_word.txt
+             python count_all_countries.py --timestep monthly --econ_file ../data/econ_files/russian_rtsi_rub.csv > ../outputs/monthly_article.txt
+
+             python count_all_countries.py --timestep quarterly --word_level --econ_file ../data/econ_files/russian_quarterly_gdp.csv > ../outputs/quarterly_word.txt
+             python count_all_countries.py --timestep quarterly --econ_file ../data/econ_files/russian_quarterly_gdp.csv > ../outputs/quarterly_article.txt
+
+             python count_all_countries.py --timestep yearly --word_level --econ_file ../data/econ_files/russian_yearly_gdp.csv > ../outputs/yearly_word.txt
+             python count_all_countries.py --timestep yearly --econ_file ../data/econ_files/russian_yearly_gdp.csv > ../outputs/yearly_article.txt
+
+outputs:
+        Stored outputs from above runs
