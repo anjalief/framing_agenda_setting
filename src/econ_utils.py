@@ -147,6 +147,13 @@ def difference(dataset, interval=1):
         diff.append(dataset[i] - dataset[i - interval])
     return diff
 
+# take % change of series
+def make_percent_change(dataset, interval=1):
+    diff = []
+    for i in range(interval, len(dataset)):
+        diff.append((dataset[i] / dataset[i - interval]) - 1)
+    return diff
+
 # average pooling (to smooth curves)
 def average_interval(dataset, interval=1):
     diff = []

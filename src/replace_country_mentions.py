@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# This script was used to collapse country references (i.e. replace "America" and "United States" with USA)
+# It should be run on texts that have already been tokenized. This version lowercases
+# words. It does not stem words.
+# It default parallelizes over 8 cores
+
 import re
 import sys
-sys.path.append("..")
-sys.path.append("../diachronic_embeddings")
 from article_utils import LoadArticles, get_year_month, NEW_ARTICLE_TOKEN
-from utils import morph_stem
 import argparse
 import multiprocessing
 import os
@@ -16,7 +18,7 @@ pattern = None
 output_dir = None
 reg_subs={}
 lower = True
-stem = True
+NUM_CORES = 8 # how many cores to parallelize over
 
 test_text = "Здравоохранение : DGDGDG миллиардов африканской Намибии на улучшение медицинского обслуживания . Буш против абортов и клониСШАрования человека . На борьбу со СПИДом в Африке США выделят DGDG миллиардов долларов ."
 
@@ -28,14 +30,11 @@ def parse_subs_file(filename):
         for bad in splits[1:]:
             if bad.strip() == "":
                 continue
-            # I think we only want to sub full words
+            # We only want to sub full words
             # text has been tokenized
             key = bad.strip().lower()
             val = splits[0].strip()
-            if stem:
-                key = morph_stem(key)
             bad_to_good[key] = val
-    print (bad_to_good)
     return bad_to_good
 
 def parse_liwc_file(filename):
@@ -68,12 +67,6 @@ def do_sub(article_name):
         text = text.replace("\n", " ").replace("\r", " ")
         if lower:
             text = text.lower()
-        if stem:
-            words = text.split()
-            new_words = []
-            for w in words:
-                new_words.append(morph_stem(w))
-            text = " ".join(new_words)
         text = pattern.sub(lambda m: reg_subs[re.escape(m.group(0))], text)
 
         # write article
@@ -86,7 +79,7 @@ def do_sub(article_name):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--article_glob')
-    parser.add_argument('--subs_file', default="cleaned.txt")
+    parser.add_argument('--subs_file', default="../data/country_subs.txt")
     parser.add_argument('--outpath')
     args = parser.parse_args()
 
@@ -107,8 +100,7 @@ def main():
 
     file_names = glob.iglob(args.article_glob)
 
-    # parallelize over files, not articles so that we're only writing
-    # 1 file at a time
+
 
     # global test_text
     # test_text = test_text.replace("\n", " ").replace("\r", " ")
@@ -117,7 +109,10 @@ def main():
     # print(test_text)
     # print(text)
 
-    pool = multiprocessing.Pool(processes=8)
+    # parallelize over files, not articles so that we're only writing
+    # 1 file at a time
+
+    pool = multiprocessing.Pool(processes=NUM_CORES)
     out_data = pool.map(do_sub, file_names)
 
 
