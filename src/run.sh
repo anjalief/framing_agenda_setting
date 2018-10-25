@@ -1,5 +1,5 @@
 
-
+# AGENDA SETTING
 ######################################### Won't run without full data set ##########################################################################
 # # Preprocessing
 # python replace_country_mentions.py --article_glob ~/corpora/russian/Izvestiia/*/*/txt.tok  --outpath ../outputs/Izvestiia_processed
