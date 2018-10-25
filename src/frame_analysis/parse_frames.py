@@ -77,9 +77,7 @@ def cluster_seeds(wv, seeds, topn, threshold, num_clusters=3):
 
 def seeds_to_real_lex(raw_lex, model_name, vocab, code="", topn=500, threshold=0.4, filter_seeds=False):
     wv = KeyedVectors.load(model_name)
-#    wv.init_sims(replace=True) # normalize vectors. This somehow is worse
     filtered_seeds = [k for k in raw_lex if k in vocab and k in wv]
-#    return cluster_seeds(wv, filtered_seeds, topn=topn, threshold=threshold)
 
     expanded_seeds = [x[0] for x in wv.most_similar(positive=filtered_seeds, topn=topn) if x[1] >= threshold]
 
@@ -94,7 +92,6 @@ stop_words = stopwords.words('english')
 def process_text(text):
     tokenized_text = tokenize.word_tokenize(text)
     return [t for t in tokenized_text if not t.replace(",", "").replace(".","").isdigit() \
-#                and t.isalpha() \
                 and not t in stop_words]
 
 # this guy wants json_text to be a list, not a dict
@@ -118,11 +115,7 @@ def do_counts(json_text):
 
             for frame in annotated_file["annotations"]["framing"][annotation_set]:
                 coded_text = text[int(frame["start"]):int(frame["end"])]
-#                code_to_counter[frame["code"]].update(process_text(coded_text))
                 code_to_counter[frame["code"]].update(process_text(coded_text))
-            # for now just grab first annotators marks, can't decide how to incorporate both
-            # and keep the background corpus reasonable
-#            break
     return corpus_counter, code_to_counter, article_counter, article_count
 
 def get_words_to_cut(article_count, word_to_article_count, min_cutoff=1000, top_cutoff=50):
@@ -147,11 +140,11 @@ def get_file_names(input_files):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input_files", default="/usr1/home/anjalief/corpora/media_frames_corpus/*.json")
-    parser.add_argument("--model_name", default="/usr1/home/anjalief/word_embed_cache/all_train_v2_200.model")
-    parser.add_argument("--lex_cache", default="./cache/frame_to_lex_v2_200.pickle")
-    parser.add_argument("--article_glob", default="/usr1/home/anjalief/corpora/russian/yearly_mod_subs/iz_lower/*.txt.tok")
-    parser.add_argument("--refresh", action='store_true')
+    parser.add_argument("--input_files", default="/usr1/home/anjalief/corpora/media_frames_corpus/*.json", help="path to MFC files")
+    parser.add_argument("--model_name", default="/usr1/home/anjalief/word_embed_cache/all_train_v2_200.model", help="pretrained word embedding model, used for query expansion")
+    parser.add_argument("--lex_cache", default="./cache/frame_to_lex_v2_200.pickle", help="cache generated lexicons")
+    parser.add_argument("--article_glob", default="/usr1/home/anjalief/corpora/russian/yearly_mod_subs/iz_lower/*.txt.tok", help="russian corpus to build lexicons from")
+    parser.add_argument("--refresh", action='store_true', help="if specified, wipe cached files and run from scratch")
     args = parser.parse_args()
 
     params = Params(RUSSIAN_PARAMS)
@@ -217,7 +210,6 @@ def main():
     # print ("*******************************************************************************************")
 
 
-    # Weird but the lex ends up being mostly nouns
     # in Russian, we filter
     code_to_lex = {code_to_str[c]:seeds_to_real_lex(code_to_lex[c], args.model_name, vocab, code_to_str[c], topn=params.VEC_SEARCH, threshold=params.SIM_THRESH, filter_seeds=True) for c in code_to_lex}
 
@@ -228,7 +220,7 @@ def main():
     for x in code_to_lex:
         print (x)
         print (code_to_lex[x], len(code_to_lex[x]))
-#    pickle.dump(code_to_lex, open(args.lex_cache, "wb"))
+    pickle.dump(code_to_lex, open(args.lex_cache, "wb"))
 
 
 if __name__ == "__main__":

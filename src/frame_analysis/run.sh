@@ -15,6 +15,14 @@ python baseline.py
 
 
 ##################################################### RUSSIAN ANALYSIS ###############################################
+# Will need to supply correct paths for all of these
+# Won't run without the full data set
+
+# Generate Russian lexicons
+python parse_frames.py --lex_cache ./cache/russian_params.pickle
 
 # Generate Figure 2
 python russian_pmi.py --whole_corpus --frame_lex ./cache/russian_params.pickle
+
+# Log odds analysis
+python framing_log_odds.py
